@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContentOS</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="shortcut icon" href="asstes/logo.png" type="image/x-icon">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">Content<span>OS</span></div>
+      <div class="nav-sec">Vistas</div>
+      <button class="nav-item active" id="nav-calendar" onclick="switchView('calendar')"><span
+          class="nav-icon">📅</span>Calendario</button>
+      <button class="nav-item" id="nav-ideas" onclick="switchView('ideas')"><span class="nav-icon">💡</span>Banco de
+        ideas</button>
+      <button class="nav-item" id="nav-checklist" onclick="switchView('checklist')"><span
+          class="nav-icon">✅</span>Checklists</button>
+      <hr class="divider" />
+      <div class="nav-sec">Clientes</div>
+      <div class="client-list" id="client-list"></div>
+      <div style="padding:10px 10px 0;">
+        <button class="btn btn-sm" style="width:100%;justify-content:center;" onclick="openSettingsModal()">Gestionar
+          Clientes</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="mob-topbar">
+        <div class="mob-logo">Content<span>OS</span></div>
+      </div>
+      <div class="stats-strip" id="stats-strip">
+        <div class="stat-box">
+          <div class="stat-val" id="s-scheduled">0</div>
+          <div class="stat-lbl">Programados</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="s-drafts">0</div>
+          <div class="stat-lbl">Borradores</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="s-ideas">0</div>
+          <div class="stat-lbl">Ideas</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="s-week">0</div>
+          <div class="stat-lbl">Esta semana</div>
+        </div>
+      </div>
+      <div class="topbar">
+        <div class="topbar-left">
+          <div id="topbar-dynamic" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;"></div>
+          <div class="pf-group" id="pf-group">
+            <button id="pf-ig" class="pf on-ig" onclick="togglePf(this,'ig')">
+              <svg class="plat-icon stroke-only" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              <span>IG</span>
+            </button>
+            <button id="pf-tt" class="pf on-tt" onclick="togglePf(this,'tt')">
+              <svg class="plat-icon" viewBox="0 0 24 24">
+                <path
+                  d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.74-3.94-1.72-.01 2.92 0 5.85-.01 8.78-.04 1.75-.48 3.59-1.63 4.9-1.32 1.61-3.52 2.45-5.59 2.27-2.26-.14-4.52-1.57-5.46-3.67-1.12-2.39-.48-5.53 1.58-7.14 1.4-1.15 3.3-1.61 5.08-1.28v4.22c-.88-.23-1.86-.06-2.58.54-.78.61-1.07 1.68-.84 2.65.2 1.01 1.18 1.83 2.21 1.83 1.34.02 2.51-1.02 2.58-2.35.03-3.69 0-7.39.01-11.08-.01-.01-.02-.02-.02-.02H12.5v-.01z" />
+              </svg>
+              <span>TT</span>
+            </button>
+            <button id="pf-yt" class="pf on-yt" onclick="togglePf(this,'yt')">
+              <svg class="plat-icon" viewBox="0 0 24 24">
+                <path
+                  d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+              <span>YT</span>
+            </button>
+          </div>
+        </div>
+        <div class="topbar-right" style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn btn-icon btn-ghost" id="theme-toggle" onclick="toggleTheme()"
+            title="Cambiar tema">🌓</button>
+          <button class="btn btn-lime" onclick="openPostModal()">+ Nuevo</button>
+        </div>
+      </div>
+      <div class="content" id="main-content"></div>
+    </div>
+  </div>
+
+  <!-- POST MODAL -->
+  <div class="overlay" id="postOverlay" style="display:none;" onclick="if(event.target===this)closePostModal()">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Nuevo contenido</div>
+      <div class="field"><label>Título *</label><input id="f-title" placeholder="Ej: Reel de tips de skincare" /></div>
+      <div class="field"><label>Plataforma</label>
+        <div class="pbtn-group">
+          <button class="pbtn" id="pb-ig" onclick="togglePlatformBtn('ig')">
+            <svg class="plat-icon stroke-only" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            Instagram
+          </button>
+          <button class="pbtn" id="pb-tt" onclick="togglePlatformBtn('tt')">
+            <svg class="plat-icon" viewBox="0 0 24 24">
+              <path
+                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.74-3.94-1.72-.01 2.92 0 5.85-.01 8.78-.04 1.75-.48 3.59-1.63 4.9-1.32 1.61-3.52 2.45-5.59 2.27-2.26-.14-4.52-1.57-5.46-3.67-1.12-2.39-.48-5.53 1.58-7.14 1.4-1.15 3.3-1.61 5.08-1.28v4.22c-.88-.23-1.86-.06-2.58.54-.78.61-1.07 1.68-.84 2.65.2 1.01 1.18 1.83 2.21 1.83 1.34.02 2.51-1.02 2.58-2.35.03-3.69 0-7.39.01-11.08-.01-.01-.02-.02-.02-.02H12.5v-.01z" />
+            </svg>
+            TikTok
+          </button>
+          <button class="pbtn" id="pb-yt" onclick="togglePlatformBtn('yt')">
+            <svg class="plat-icon" viewBox="0 0 24 24">
+              <path
+                d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+            </svg>
+            YouTube Shorts
+          </button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0"><label>Tipo</label>
+          <select id="f-type">
+            <option>Reel</option>
+            <option>Short</option>
+            <option>Post estático</option>
+            <option>Historia</option>
+            <option>Carrusel</option>
+            <option>Live</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0"><label>Estado</label>
+          <select id="f-status">
+            <option value="idea">Idea</option>
+            <option value="draft">Borrador</option>
+            <option value="ready">Listo</option>
+            <option value="scheduled">Programado</option>
+            <option value="published">Publicado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row" style="margin-top:13px;">
+        <div class="field" style="margin-bottom:0"><label>Fecha</label><input type="date" id="f-date" /></div>
+        <div class="field" style="margin-bottom:0"><label>Hora</label><input type="time" id="f-time" value="10:00" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:13px;"><label>Caption / Notas</label><textarea id="f-caption"
+          placeholder="Texto del post o notas de producción..."></textarea></div>
+      <div class="field"><label>Cliente</label>
+        <select id="f-client">
+          <option value="">— Mi cuenta —</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="btn-delete" style="display:none;margin-right:auto;"
+          onclick="confirmDeletePost()">Eliminar</button>
+        <button class="btn" onclick="closePostModal()">Cancelar</button>
+        <button class="btn btn-lime" onclick="savePost()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <div class="mob-nav-bar" id="mob-nav-bar">
+    <button class="mob-nav-btn active" id="mob-nav-calendar" onclick="switchView('calendar')">
+      <span class="mob-nav-icon">📅</span>
+      <span class="mob-nav-lbl">Calendario</span>
+    </button>
+    <button class="mob-nav-btn" id="mob-nav-ideas" onclick="switchView('ideas')">
+      <span class="mob-nav-icon">💡</span>
+      <span class="mob-nav-lbl">Ideas</span>
+    </button>
+    <button class="mob-nav-btn" id="mob-nav-checklist" onclick="switchView('checklist')">
+      <span class="mob-nav-icon">✅</span>
+      <span class="mob-nav-lbl">Tareas</span>
+    </button>
+    <button class="mob-nav-btn" id="mob-nav-clients" onclick="openSidebar()">
+      <span class="mob-nav-icon">👥</span>
+      <span class="mob-nav-lbl">Clientes</span>
+    </button>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="overlay" id="confirmOverlay" style="display:none;">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirm-title">¿Estás seguro?</div>
+      <div class="confirm-sub" id="confirm-sub"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn-danger" id="confirm-ok">Eliminar</button>
+      </div>
+    </div>
+  </div>
+  <div id="cal-popover" class="cal-popover" style="display:none;"></div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="overlay" id="settingsOverlay" style="display:none;" onclick="if(event.target===this)closeSettingsModal()">
+    <div class="modal" style="max-width: 420px;">
+      <div class="modal-title">Gestionar Clientes</div>
+
+      <!-- ADD NEW CLIENT SECTION -->
+      <div style="background:var(--bg); border-radius:var(--r); padding:16px; margin-bottom:20px;">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px;">Nuevo Cliente</div>
+        <div class="field"><label>Nombre</label><input id="c-name" placeholder="Ej: La Vegana, BarberCo..." /></div>
+        <div class="field"><label>Color</label>
+          <div id="color-picker" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+          <button class="btn btn-lime" onclick="saveClient()">Agregar</button>
+        </div>
+      </div>
+
+      <!-- EXISTING CLIENTS LIST -->
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Clientes Actuales
+        </div>
+        <div id="settings-client-list"
+          style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;">
+          <!-- Clientes renderizados aquí -->
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content: flex-end; gap:8px;">
+        <button class="btn btn-ghost" onclick="closeSettingsModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+
+</html>
