@@ -1,6 +1,6 @@
 {
-  "name": "ContentOS AI Social",
-  "short_name": "ContentOS",
+  "name": "Content IA Social",
+  "short_name": "Content-IA",
   "description": "IA que escribe, adapta y programa tus posts de redes sociales",
   "start_url": "./",
   "display": "standalone",
