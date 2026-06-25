@@ -1,0 +1,18 @@
+{
+  "name": "ContentOS AI Social",
+  "short_name": "ContentOS",
+  "description": "IA que escribe, adapta y programa tus posts de redes sociales",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080713",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon_agente_ia_social.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

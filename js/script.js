@@ -1,578 +1,515 @@
-// ─── STATE ────────────────────────────────────────────────────────
-const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const DAYS_S = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const COLORS = ['#C8FF00', '#E1306C', '#7c3aed', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
-const TYPE_MAP = { 'Reel': 'Reel', 'Short': 'Short', 'Post estático': 'Post', 'Historia': 'Story', 'Carrusel': 'Car.', 'Live': 'Live' };
-const TYPE_CLASS = { 'Reel': 'tb-reel', 'Short': 'tb-short', 'Post estático': 'tb-post', 'Historia': 'tb-story', 'Carrusel': 'tb-car', 'Live': 'tb-live' };
-const STATUS_LABEL = { idea: 'Idea', draft: 'Borrador', ready: 'Listo ✓', scheduled: 'Programado', published: 'Publicado' };
-const STATUS_CLASS = { idea: 'sb-idea', draft: 'sb-draft', ready: 'sb-ready', scheduled: 'sb-scheduled', published: 'sb-published' };
+const LIMITS = { ig: 2200, tw: 280, li: 3000, tk: 2200 };
+const COLORS = { ig: '#e040fb', tw: '#38bdf8', li: '#60a5fa', tk: '#f87171' };
+const NAMES = { ig: 'Instagram', tw: 'Twitter/X', li: 'LinkedIn', tk: 'TikTok' };
+const ICONS = { ig: '📸', tw: '𝕏', li: '💼', tk: '🎵' };
 
-const FORMAT_ICONS = {
-  'Reel': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect><path d="M7 2v20M17 2v20M2 7h5M2 17h5M17 17h5M17 7h5M7 12h10"></path></svg>`,
-  'Short': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><polygon points="10 9 15 12 10 15 10 9" fill="currentColor"></polygon></svg>`,
-  'Post estático': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
-  'Historia': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 3"><circle cx="12" cy="12" r="10"></circle></svg>`,
-  'Carrusel': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="16" height="16" rx="2"></rect><path d="M6 2h14a2 2 0 0 1 2 2v14M10 2h6"></path></svg>`,
-  'Live': `<svg class="format-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"></path></svg>`
+const FORMATS_BY_PLATFORM = {
+  ig: [
+    { id: 'post', name: 'Post Feed', icon: '🖼️' },
+    { id: 'reel', name: 'Reel / Video', icon: '🎥' },
+    { id: 'carrusel', name: 'Carrusel', icon: '📄' },
+    { id: 'story', name: 'Historia', icon: '📱' }
+  ],
+  tw: [
+    { id: 'post', name: 'Post estándar', icon: '🪶' },
+    { id: 'hilo', name: 'Hilo / Thread', icon: '🧵' }
+  ],
+  li: [
+    { id: 'post', name: 'Post profesional', icon: '💼' },
+    { id: 'carrusel', name: 'Carrusel (PDF)', icon: '📄' },
+    { id: 'image', name: 'Con Imagen', icon: '🖼️' }
+  ],
+  tk: [
+    { id: 'video', name: 'Video / Reel', icon: '🎥' },
+    { id: 'story', name: 'Historia', icon: '📱' }
+  ]
 };
 
-const PLATFORM_ICONS = {
-  ig: `<svg class="plat-icon stroke-only" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
-  tt: `<svg class="plat-icon" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.74-3.94-1.72-.01 2.92 0 5.85-.01 8.78-.04 1.75-.48 3.59-1.63 4.9-1.32 1.61-3.52 2.45-5.59 2.27-2.26-.14-4.52-1.57-5.46-3.67-1.12-2.39-.48-5.53 1.58-7.14 1.4-1.15 3.3-1.61 5.08-1.28v4.22c-.88-.23-1.86-.06-2.58.54-.78.61-1.07 1.68-.84 2.65.2 1.01 1.18 1.83 2.21 1.83 1.34.02 2.51-1.02 2.58-2.35.03-3.69 0-7.39.01-11.08-.01-.01-.02-.02-.02-.02H12.5v-.01z"/></svg>`,
-  yt: `<svg class="plat-icon" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
-};
+let platform = 'ig', format = 'post', tone = 'Profesional', generating = false, hasResults = false;
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), selectedDay = null;
+let apiKey = localStorage.getItem('gemini_api_key') || '';
 
-function load(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d } catch { return d } }
-function save(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
-
-let posts = load('ctos_posts', []);
-let clients = load('ctos_clients', []);
-let currentView = 'calendar';
-let activeClient = null;
-let activePlatforms = new Set(['ig', 'tt', 'yt']);
-let calDate = new Date();
-let editingPostId = null;
-let modalPlatforms = new Set(['ig']);
-let selectedColor = COLORS[1];
-let currentTheme = load('ctos_theme', 'light');
-
-// ─── SIDEBAR MOBILE ───────────────────────────────────────────────
-function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
-function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
-
-// ─── VIEWS ───────────────────────────────────────────────────────
-function switchView(v) {
-    currentView = v;
-    ['calendar', 'ideas', 'checklist'].forEach(x => {
-        const desktopBtn = document.getElementById('nav-' + x);
-        if (desktopBtn) desktopBtn.classList.toggle('active', x === v);
-        
-        const mobileBtn = document.getElementById('mob-nav-' + x);
-        if (mobileBtn) mobileBtn.classList.toggle('active', x === v);
-    });
-    closeSidebar();
-    render();
+// API Modal Functions
+function openApiModal() {
+  const modal = document.getElementById('apiModal');
+  const input = document.getElementById('api-key-input');
+  input.value = apiKey;
+  modal.style.display = 'flex';
 }
 
-// ─── TOPBAR NAVIGATION ──────────────────────────────────────────
-function updateTopbar() {
-    const container = document.getElementById('topbar-dynamic');
-    if (!container) return;
+function closeApiModal() {
+  document.getElementById('apiModal').style.display = 'none';
+}
 
-    if (currentView === 'calendar') {
-        const year = calDate.getFullYear(), month = calDate.getMonth();
-        const fp = filtered().filter(p => p.platforms && p.platforms.some(pl => activePlatforms.has(pl)));
-        const monthPosts = fp.filter(p => p.date && p.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`));
-        
-        container.innerHTML = `
-          <div class="cal-nav">
-            <button class="btn btn-icon btn-ghost" onclick="calNav(-1)">‹</button>
-            <div class="cal-month">${MONTHS[month]} ${year}</div>
-            <button class="btn btn-icon btn-ghost" onclick="calNav(1)">›</button>
-            <button class="btn btn-sm btn-ghost" onclick="calToday()">Hoy</button>
-          </div>
-          <div id="cal-posts-count" style="font-size:12px;color:var(--t3);margin-left:8px;font-weight:500;">${monthPosts.length} posts</div>
-        `;
-        document.getElementById('pf-group').style.display = 'flex';
-    } else {
-        const titles = { ideas: 'Banco de ideas', checklist: 'Checklists' };
-        container.innerHTML = `<div class="page-title">${titles[currentView]}</div>`;
-        document.getElementById('pf-group').style.display = 'none';
+function saveApiKey() {
+  const input = document.getElementById('api-key-input');
+  apiKey = input.value.trim();
+  localStorage.setItem('gemini_api_key', apiKey);
+  updateApiStatusUI();
+  closeApiModal();
+}
+
+function togglePassVisibility() {
+  const input = document.getElementById('api-key-input');
+  const btn = document.getElementById('btnTogglePass');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+function updateApiStatusUI() {
+  const dot = document.getElementById('apiStatusDot');
+  const btn = document.getElementById('btnApi');
+  if (apiKey) {
+    dot.classList.add('active');
+    btn.style.borderColor = 'var(--green)';
+    btn.querySelector('.api-btn-text').textContent = 'IA Conectada';
+  } else {
+    dot.classList.remove('active');
+    btn.style.borderColor = 'var(--border)';
+    btn.querySelector('.api-btn-text').textContent = 'Configurar API';
+  }
+}
+
+const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// Mock posts for current month
+function genMockPosts() {
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const ps = ['ig', 'tw', 'li', 'tk'];
+  const texts = {
+    ig: ['🌟 Nueva colección disponible. Cada pieza cuenta una historia. ¿Cuál es la tuya?\n\n#moda #estilo #nuevacoleccion', '✨ El éxito se construye un paso a la vez. Esta semana dimos el nuestro.\n\n#motivacion #crecimiento'],
+    tw: ['Lanzamos algo nuevo hoy y estamos muy emocionados. Thread 🧵👇', 'Dato: el 73% de los usuarios prefiere contenido visual. ¿Tu marca ya lo aprovecha?'],
+    li: ['Después de 3 años liderando equipos remotos, aprendí que la confianza supera al control. Aquí mis 5 claves:', 'El mercado cambió. Las marcas que no adaptan su comunicación digital quedan atrás. Hablemos de estrategia.'],
+    tk: ['POV: cuando tu producto se vende solo porque tu contenido es 🔥', 'Tutorial rápido: 3 trucos para crear reels que enganchan desde el primer segundo']
+  };
+  const hours = ['08:00', '09:00', '10:00', '12:00', '14:00', '17:00', '19:00', '21:00'];
+  const schedule = {};
+  const usedDays = [];
+  while (usedDays.length < 14) {
+    const d = Math.floor(Math.random() * daysInMonth) + 1;
+    if (!usedDays.includes(d)) usedDays.push(d);
+  }
+  usedDays.forEach((d, i) => {
+    const p = ps[i % 4];
+    const txt = texts[p][i % 2];
+    if (!schedule[d]) schedule[d] = [];
+    schedule[d].push({ platform: p, text: txt, time: hours[i % hours.length] });
+    if (i % 3 === 0 && i > 0) {
+      const p2 = ps[(i + 2) % 4];
+      schedule[d].push({ platform: p2, text: texts[p2][0], time: hours[(i + 3) % hours.length] });
     }
+  });
+  return schedule;
 }
 
-// ─── PLATFORM FILTER ─────────────────────────────────────────────
-function togglePf(btn, p) {
-    activePlatforms.has(p) ? activePlatforms.delete(p) : activePlatforms.add(p);
-    btn.classList.toggle('on-' + p, activePlatforms.has(p));
-    
-    if (currentView === 'calendar') {
-        updateCalendarPosts();
-        
-        // Update count in topbar
-        const year = calDate.getFullYear(), month = calDate.getMonth();
-        const fp = filtered().filter(p => p.platforms && p.platforms.some(pl => activePlatforms.has(pl)));
-        const monthPosts = fp.filter(p => p.date && p.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`));
-        const countEl = document.getElementById('cal-posts-count');
-        if (countEl) countEl.textContent = `${monthPosts.length} posts`;
-    } else {
-        render();
-    }
+const mockPosts = genMockPosts();
+
+function setPlatform(p) {
+  platform = p;
+  document.querySelectorAll('.plat-btn').forEach(b => b.classList.toggle('active', b.dataset.p === p));
+  renderFormats();
+  updateCount();
 }
-
-// ─── CLIENT SIDEBAR ───────────────────────────────────────────────
-function renderClients() {
-    const el = document.getElementById('client-list');
-    const chips = [{ id: null, name: 'Todos', color: 'var(--lime)' }, ...clients];
-    el.innerHTML = chips.map(c => `
-    <button class="client-chip ${activeClient === c.id ? 'active' : ''}" onclick="setClient(${c.id === null ? 'null' : `'${c.id}'`})">
-      <div class="cdot" style="background:${c.color || 'var(--lime)'}"></div>${c.name}
-    </button>`).join('');
-    // populate f-client select
-    const sel = document.getElementById('f-client');
-    if (sel) {
-        const cur = sel.value;
-        sel.innerHTML = '<option value="">— Mi cuenta —</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        sel.value = cur;
-    }
-}
-function setClient(id) { activeClient = id; renderClients(); render(); closeSidebar(); }
-
-// ─── STATS ───────────────────────────────────────────────────────
-function updateStats() {
-    const today = new Date().toISOString().slice(0, 10);
-    const weekEnd = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-    document.getElementById('s-scheduled').textContent = posts.filter(p => p.status === 'scheduled').length;
-    document.getElementById('s-drafts').textContent = posts.filter(p => p.status === 'draft').length;
-    document.getElementById('s-ideas').textContent = posts.filter(p => p.status === 'idea').length;
-    document.getElementById('s-week').textContent = posts.filter(p => p.date >= today && p.date <= weekEnd).length;
-}
-
-// ─── FILTERED POSTS ───────────────────────────────────────────────
-function filtered() {
-    return posts.filter(p => activeClient === null || (p.client_id || null) === activeClient);
-}
-
-// ─── RENDER ──────────────────────────────────────────────────────
-function render() {
-    updateStats();
-    updateTopbar();
-    const el = document.getElementById('main-content');
-    if (currentView === 'calendar') {
-        el.innerHTML = renderCalendar();
-        updateCalendarPosts();
-    }
-    else if (currentView === 'ideas') el.innerHTML = renderIdeas();
-    else el.innerHTML = renderChecklist();
-}
-
-// ─── CALENDAR ────────────────────────────────────────────────────
-function renderCalendar() {
-    return renderCalendarSkeleton();
-}
-
-function renderCalendarSkeleton() {
-    const year = calDate.getFullYear(), month = calDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date().toISOString().slice(0, 10);
-
-    let cells = '';
-    // prev month cells
-    const prevDays = new Date(year, month, 0).getDate();
-    for (let i = firstDay - 1; i >= 0; i--) {
-        cells += `<div class="cal-cell other-m"><div class="cdate">${prevDays - i}</div></div>`;
-    }
-    // this month
-    for (let d = 1; d <= daysInMonth; d++) {
-        const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isToday = key === today;
-        cells += `<div class="cal-cell ${isToday ? 'today' : ''}" data-date="${key}" onclick="openPostModal(null,'${key}')">
-          <div class="cdate">${isToday ? `<span>${d}</span>` : d}</div>
-          <div class="cell-posts-container"></div>
-        </div>`;
-    }
-    // next month
-    const lastDay = new Date(year, month, daysInMonth).getDay();
-    for (let d = 1; d < 7 - lastDay; d++) {
-        cells += `<div class="cal-cell other-m"><div class="cdate">${d}</div></div>`;
-    }
-
-    return `<div class="cal-scroller">
-    <div class="cal-grid">
-      ${DAYS_S.map(d => `<div class="cal-dh">${d}</div>`).join('')}
-      ${cells}
-    </div>
-  </div>`;
-}
-
-function updateCalendarPosts() {
-    const year = calDate.getFullYear(), month = calDate.getMonth();
-    const fp = filtered().filter(p => p.platforms && p.platforms.some(pl => activePlatforms.has(pl)));
-    const byDate = {};
-    fp.forEach(p => { if (p.date) { if (!byDate[p.date]) byDate[p.date] = []; byDate[p.date].push(p); } });
-
-    const cells = document.querySelectorAll('.cal-cell[data-date]');
-    cells.forEach(cell => {
-        const date = cell.getAttribute('data-date');
-        const container = cell.querySelector('.cell-posts-container');
-        if (!container) return;
-
-        const dayPosts = byDate[date] || [];
-        dayPosts.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
-
-        const pills = dayPosts.slice(0, 3).map(p => {
-            const pl = p.platforms?.[0] || 'ig';
-            const displayTitle = (p.time ? `${p.time} - ` : '') + p.title;
-            return `<div class="ppill ${pl} s-${p.status}" onclick="event.stopPropagation();openPostModal('${p.id}')">
-        <span class="ptext" title="${displayTitle}">${displayTitle}</span>
-        <span class="tbadge ${TYPE_CLASS[p.type] || 'tb-post'}" title="${p.type}">${FORMAT_ICONS[p.type] || p.type}</span>
-      </div>`;
-        }).join('');
-
-        const more = dayPosts.length > 3 ? `<div class="more-p" onclick="openPopover(event, this, '${date}')">+${dayPosts.length - 3} más</div>` : '';
-        container.innerHTML = pills + more;
-    });
-}
-
-// ─── POPOVER FOR OVERFLOW POSTS ──────────────────────────────────
-function openPopover(e, target, date) {
-    if (e) e.stopPropagation();
-    const rect = target.getBoundingClientRect();
-    const pop = document.getElementById('cal-popover');
-    if (!pop) return;
-
-    // Find posts for this day
-    const dayPosts = filtered().filter(p => p.date === date && p.platforms?.some(pl => activePlatforms.has(pl)));
-    dayPosts.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
-
-    let html = `
-      <div class="popover-header">
-        <span class="popover-title">${new Date(date + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
-        <button class="popover-close" onclick="closePopover(event)">&times;</button>
-      </div>
-      <div class="popover-list">
-    `;
-
-    dayPosts.forEach(p => {
-        const pl = p.platforms?.[0] || 'ig';
-        const displayTitle = (p.time ? `${p.time} - ` : '') + p.title;
-        html += `
-          <div class="ppill ${pl} s-${p.status}" onclick="event.stopPropagation();openPostModal('${p.id}');closePopover(event)">
-            <span class="ptext" title="${displayTitle}">${displayTitle}</span>
-            <span class="tbadge ${TYPE_CLASS[p.type] || 'tb-post'}" title="${p.type}">${FORMAT_ICONS[p.type] || p.type}</span>
-          </div>
-        `;
-    });
-
-    html += `</div>`;
-    pop.innerHTML = html;
-    pop.style.display = 'block';
-
-    // Position dynamically
-    let top = rect.top + window.scrollY;
-    let left = rect.left + window.scrollX;
-
-    // Adjust positions to stay within bounds
-    if (left + 250 > window.innerWidth) {
-        left = window.innerWidth - 270;
-    }
-    if (left < 10) left = 10;
-    if (top + pop.offsetHeight > window.innerHeight + window.scrollY) {
-        top = window.innerHeight + window.scrollY - pop.offsetHeight - 20;
-    }
-    if (top < 0) top = 10;
-
-    pop.style.top = top + 'px';
-    pop.style.left = left + 'px';
-}
-
-function closePopover(e) {
-    if (e) e.stopPropagation();
-    const pop = document.getElementById('cal-popover');
-    if (pop) pop.style.display = 'none';
-}
-
-// Click outside popover to close it
-window.addEventListener('click', (e) => {
-    const pop = document.getElementById('cal-popover');
-    if (pop && pop.style.display === 'block' && !pop.contains(e.target)) {
-        closePopover();
-    }
-});
-
-function calNav(dir) { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + dir, 1); render(); }
-function calToday() { calDate = new Date(); render(); }
-
-// ─── IDEAS ───────────────────────────────────────────────────────
-function renderIdeas() {
-    let fp = filtered();
-    const fStatus = document.getElementById('filter-status')?.value || 'all';
-    const fPlat = document.getElementById('filter-plat')?.value || 'all';
-    if (fStatus !== 'all') fp = fp.filter(p => p.status === fStatus);
-    if (fPlat !== 'all') fp = fp.filter(p => p.platforms?.includes(fPlat));
-
-    const clientName = id => clients.find(c => c.id === id)?.name || 'Mi cuenta';
-
-    const cards = fp.length === 0 ? `<div class="empty">
-    <div class="empty-icon">💡</div>
-    <div class="empty-title">Sin contenido todavía</div>
-    <div class="empty-sub">Agregá tu primer idea</div>
-    <button class="btn btn-lime" onclick="openPostModal()">+ Nuevo</button>
-  </div>`: fp.map(p => {
-    const pl = (p.platforms && p.platforms[0]) || 'ig';
-    return `
-    <div class="icard ${pl} ${p.status === 'ready' ? 'ready' : ''}" onclick="openPostModal('${p.id}')">
-      <div class="itop">
-        <div class="pdots">${(p.platforms || ['ig']).map(plat => `<div class="pdot pd-${plat}" title="${plat.toUpperCase()}">${PLATFORM_ICONS[plat] || plat.toUpperCase()}</div>`).join('')}</div>
-        <div class="sbadge ${STATUS_CLASS[p.status] || 'sb-draft'}">${STATUS_LABEL[p.status] || p.status}</div>
-      </div>
-      <div class="ititle">${p.time ? `<strong style="font-weight:600;color:var(--text);">${p.time}</strong> - ` : ''}${p.title}</div>
-      ${p.caption ? `<div class="idesc">${p.caption.length > 85 ? p.caption.slice(0, 85) + '…' : p.caption}</div>` : ''}
-      <div class="imeta">
-        <div class="itype" title="${p.type}">${FORMAT_ICONS[p.type] || ''} <span style="font-size:11px;margin-left:4px;">${p.type || 'Reel'}</span></div>
-        <div style="font-size:10px;color:var(--t3)">${clientName(p.client_id)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-    return `<div class="ideas-toolbar">
-    <div style="font-size:13.5px;color:var(--t2)">${fp.length} contenidos</div>
-    <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <select class="select-sm" id="filter-plat" onchange="render()">
-        <option value="all">Todas las plataformas</option>
-        <option value="ig">Instagram</option><option value="tt">TikTok</option><option value="yt">YouTube Shorts</option>
-      </select>
-      <select class="select-sm" id="filter-status" onchange="render()">
-        <option value="all">Todos los estados</option>
-        <option value="idea">Idea</option><option value="draft">Borrador</option>
-        <option value="ready">Listo</option><option value="scheduled">Programado</option><option value="published">Publicado</option>
-      </select>
-    </div>
-  </div>
-  <div class="ideas-grid">${cards}</div>`;
-}
-
-// ─── CHECKLIST ───────────────────────────────────────────────────
-const CL_DATA = {
-    reel: {
-        title: 'Reel / Short', color: 'var(--lime)', items: [
-            { l: 'Definir concepto y hook', s: 'Primeros 3 seg son clave' },
-            { l: 'Escribir guión o puntos clave', s: 'Máx 60 palabras' },
-            { l: 'Grabar el video', s: 'Buena iluminación y estabilidad' },
-            { l: 'Editar con subtítulos', s: 'CapCut / Premiere / DaVinci' },
-            { l: 'Agregar música trending', s: 'Revisá tendencias de la semana' },
-            { l: 'Caption con CTA', s: 'Primera línea tiene que enganchar' },
-            { l: 'Hashtags (5-10 máx)', s: 'Mix de populares + nicho' },
-            { l: 'Subir y programar', s: 'Mejor horario según estadísticas' },
-        ]
-    },
-    story: {
-        title: 'Historia / Story', color: '#a78bfa', items: [
-            { l: 'Definir objetivo de la story', s: 'Awareness / Engagement / Venta' },
-            { l: 'Diseñar o grabar el contenido', s: 'Vertical 9:16, bien encuadrado' },
-            { l: 'Agregar elementos interactivos', s: 'Encuesta, pregunta, cuenta regresiva' },
-            { l: 'Revisar texto y stickers', s: 'Legible en todos los celulares' },
-            { l: 'Link o CTA si aplica', s: 'Link en bio / sticker de enlace' },
-            { l: 'Publicar en horario pico', s: '11-13hs o 19-21hs' },
-        ]
-    },
-    post: {
-        title: 'Post estático', color: '#60a5fa', items: [
-            { l: 'Definir mensaje principal', s: 'Una sola idea clara por post' },
-            { l: 'Diseñar imagen o carrusel', s: 'Canva / Photoshop / Figma' },
-            { l: 'Revisar branding y colores', s: 'Consistente con la marca' },
-            { l: 'Caption + pregunta final', s: 'Las preguntas generan más comentarios' },
-            { l: 'Alt text para accesibilidad', s: 'También ayuda al algoritmo' },
-            { l: 'Hashtags y ubicación', s: 'Geolocalizar si es negocio local' },
-            { l: 'Programar en horario óptimo', s: 'Revisá el panel de estadísticas' },
-        ]
-    }
-};
-let clDone = { reel: new Set(), story: new Set(), post: new Set() };
-
-function renderChecklist() {
-    const cols = Object.entries(CL_DATA).map(([key, d]) => {
-        const done = clDone[key];
-        const pct = Math.round(done.size / d.items.length * 100);
-        const items = d.items.map((item, i) => `
-      <div class="cl-item ${done.has(i) ? 'done' : ''}" onclick="toggleCl('${key}',${i})">
-        <div class="cl-box">${done.has(i) ? '✓' : ''}</div>
-        <div><div class="cl-lbl">${item.l}</div><div class="cl-sub">${item.s}</div></div>
-      </div>`).join('');
-        return `<div class="cl-col">
-      <div class="cl-hdr">
-        <div class="cl-title" style="color:${d.color}">${d.title}</div>
-        <div class="cl-prog">${done.size}/${d.items.length} · ${pct}%</div>
-      </div>
-      <div class="cl-bar"><div class="cl-fill" style="width:${pct}%;background:${d.color}"></div></div>
-      ${items}
-    </div>`;
-    }).join('');
-    return `<div style="font-size:13.5px;color:var(--t2);margin-bottom:18px;">Hacé click en cada paso para marcarlo como completado.</div>
-  <div class="cl-grid">${cols}</div>`;
-}
-function toggleCl(key, i) {
-    clDone[key].has(i) ? clDone[key].delete(i) : clDone[key].add(i);
-    render();
-}
-
-// ─── POST MODAL ──────────────────────────────────────────────────
-function openPostModal(id = null, defaultDate = '') {
-    editingPostId = id;
-    const post = id ? posts.find(p => p.id === id) : null;
-    document.getElementById('modal-title').textContent = post ? 'Editar contenido' : 'Nuevo contenido';
-    document.getElementById('btn-delete').style.display = post ? 'flex' : 'none';
-
-    // reset platform buttons
-    modalPlatforms = new Set(post?.platforms || ['ig']);
-    ['ig', 'tt', 'yt'].forEach(p => {
-        const btn = document.getElementById('pb-' + p);
-        btn.className = 'pbtn' + (modalPlatforms.has(p) ? ' sel-' + p : '');
-    });
-
-    document.getElementById('f-title').value = post?.title || '';
-    document.getElementById('f-type').value = post?.type || 'Reel';
-    document.getElementById('f-status').value = post?.status || 'idea';
-    document.getElementById('f-date').value = post?.date || defaultDate || '';
-    document.getElementById('f-time').value = post?.time || '10:00';
-    document.getElementById('f-caption').value = post?.caption || '';
-
-    // populate clients
-    const sel = document.getElementById('f-client');
-    sel.innerHTML = '<option value="">— Mi cuenta —</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    sel.value = post?.client_id || '';
-
-    document.getElementById('postOverlay').style.display = 'flex';
-    setTimeout(() => document.getElementById('f-title').focus(), 50);
-}
-function closePostModal() { document.getElementById('postOverlay').style.display = 'none'; editingPostId = null; }
-
-function togglePlatformBtn(p) {
-    const btn = document.getElementById('pb-' + p);
-    if (modalPlatforms.has(p)) { modalPlatforms.delete(p); btn.className = 'pbtn'; }
-    else { modalPlatforms.add(p); btn.className = 'pbtn sel-' + p; }
-}
-
-function savePost() {
-    const title = document.getElementById('f-title').value.trim();
-    if (!title) return document.getElementById('f-title').focus();
-    const data = {
-        id: editingPostId || crypto.randomUUID(),
-        title,
-        type: document.getElementById('f-type').value,
-        status: document.getElementById('f-status').value,
-        platforms: [...modalPlatforms],
-        date: document.getElementById('f-date').value || null,
-        time: document.getElementById('f-time').value,
-        caption: document.getElementById('f-caption').value.trim(),
-        client_id: document.getElementById('f-client').value || null,
-        created_at: editingPostId ? undefined : (new Date().toISOString()),
-    };
-    if (editingPostId) {
-        const idx = posts.findIndex(p => p.id === editingPostId);
-        if (idx > -1) { posts[idx] = { ...posts[idx], ...data }; }
-    } else {
-        posts.push(data);
-    }
-    save('ctos_posts', posts);
-    closePostModal();
-    render();
-}
-
-function confirmDeletePost() {
-    showConfirm('¿Eliminás este post?', 'Esta acción no se puede deshacer.', () => {
-        posts = posts.filter(p => p.id !== editingPostId);
-        save('ctos_posts', posts);
-        closePostModal();
-        render();
-    });
-}
-
-// ─── CLIENT MODAL ─────────────────────────────────────────────────
-
-function selectColor(c) {
-    selectedColor = c;
-    COLORS.forEach(col => {
-        const el = document.getElementById('cp-' + col.replace('#', ''));
-        if (el) el.style.border = `2px solid ${col === c ? 'var(--text)' : 'transparent'}`;
-    });
-}
-function saveClient() {
-    const name = document.getElementById('c-name').value.trim();
-    if (!name) return;
-    clients.push({ id: crypto.randomUUID(), name, color: selectedColor });
-    save('ctos_clients', clients);
-    document.getElementById('c-name').value = '';
-    renderClients();
-    renderSettingsClients();
-}
-
-// ─── CONFIRM ─────────────────────────────────────────────────────
-function showConfirm(title, sub, onOk) {
-    document.getElementById('confirm-title').textContent = title;
-    document.getElementById('confirm-sub').textContent = sub;
-    document.getElementById('confirmOverlay').style.display = 'flex';
-    document.getElementById('confirm-ok').onclick = () => { document.getElementById('confirmOverlay').style.display = 'none'; onOk(); };
-    document.getElementById('confirm-cancel').onclick = () => document.getElementById('confirmOverlay').style.display = 'none';
-}
-
-// ─── INIT ─────────────────────────────────────────────────────────
-// Demo data si es primera vez
-if (posts.length === 0) {
-    const today = new Date();
-    const fmt = (offset) => {
-        const d = new Date(today); d.setDate(d.getDate() + offset);
-        return d.toISOString().slice(0, 10);
-    };
-    posts = [
-        { id: crypto.randomUUID(), title: 'Tips skincare mañanero', type: 'Reel', status: 'scheduled', platforms: ['ig'], date: fmt(-2), time: '10:00', caption: '3 tips rápidos para tu rutina AM ☀️', client_id: null },
-        { id: crypto.randomUUID(), title: 'Rutina HIIT 10 minutos', type: 'Short', status: 'scheduled', platforms: ['tt', 'yt'], date: fmt(1), time: '18:00', caption: 'Sin equipamiento, desde casa 🔥', client_id: null },
-        { id: crypto.randomUUID(), title: 'Story encuesta verano', type: 'Historia', status: 'draft', platforms: ['ig'], date: fmt(2), time: '12:00', caption: '¿Qué contenido querés ver este verano?', client_id: null },
-        { id: crypto.randomUUID(), title: 'Tutorial barba perfecta', type: 'Reel', status: 'idea', platforms: ['ig', 'yt'], date: fmt(5), time: '10:00', caption: '', client_id: null },
-        { id: crypto.randomUUID(), title: 'Challenge trending', type: 'Short', status: 'ready', platforms: ['tt'], date: fmt(7), time: '19:00', caption: '', client_id: null },
-    ];
-    save('ctos_posts', posts);
-}
-
-// ─── THEME & SETTINGS ─────────────────────────────────────────────
-function toggleTheme() {
-    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.body.classList.toggle('dark-theme', currentTheme === 'dark');
-    save('ctos_theme', currentTheme);
-}
-
-function openSettingsModal() {
-    document.getElementById('c-name').value = '';
-    selectedColor = COLORS[1];
-    const picker = document.getElementById('color-picker');
-    picker.innerHTML = COLORS.map(c => `
-    <div onclick="selectColor('${c}')" id="cp-${c.replace('#', '')}" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c === selectedColor ? 'var(--text)' : 'transparent'};box-sizing:border-box;transition:border .1s;"></div>
+function renderFormats() {
+  const container = document.getElementById('formats');
+  const formats = FORMATS_BY_PLATFORM[platform];
+  container.innerHTML = formats.map(f => `
+    <button class="format-btn" data-f="${f.id}" onclick="setFormat('${f.id}')">
+      <span class="ficon">${f.icon}</span>
+      <span>${f.name}</span>
+    </button>
   `).join('');
-    
-    document.getElementById('settingsOverlay').style.display = 'flex';
-    renderSettingsClients();
+  setFormat(formats[0].id);
+}
+function setFormat(f) {
+  format = f;
+  document.querySelectorAll('.format-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.f === f);
+  });
+}
+function setTone(el) {
+  tone = el.textContent;
+  document.querySelectorAll('.tone-btn').forEach(b => b.classList.toggle('active', b === el));
+}
+function updateCount() {
+  const ta = document.getElementById('prompt');
+  const limit = LIMITS[platform];
+  const remaining = limit - ta.value.length;
+  const el = document.getElementById('charCount');
+  el.textContent = remaining + ' restantes';
+  el.className = 'char-count' + (remaining < 50 ? ' warn' : '');
 }
 
-function closeSettingsModal() {
-    document.getElementById('settingsOverlay').style.display = 'none';
-}
+async function generate() {
+  if (generating) return;
+  generating = true;
+  const btn = document.getElementById('btnGen');
+  document.getElementById('btnIcon').innerHTML = '<div class="spinner"></div>';
+  document.getElementById('btnText').textContent = 'Generando...';
+  btn.disabled = true;
 
-function renderSettingsClients() {
-    const container = document.getElementById('settings-client-list');
-    if (!container) return;
+  const userPrompt = document.getElementById('prompt').value || 'contenido general para mi marca';
+  const limit = LIMITS[platform];
+  const pName = NAMES[platform];
 
-    if (clients.length === 0) {
-        container.innerHTML = `<div style="font-size:12.5px;color:var(--t3);text-align:center;padding:16px 0;">No hay clientes registrados</div>`;
-        return;
+  const optObjective = document.getElementById('w-objective').value.trim();
+  const optAudience = document.getElementById('w-audience').value.trim();
+  const optBenefit = document.getElementById('w-benefit').value.trim();
+  const optEngagement = document.getElementById('w-engagement').checked;
+
+  await new Promise(r => setTimeout(r, 600));
+
+  let promptText = `Eres un redactor creativo y estratega de contenido experto en social media.
+Genera EXACTAMENTE 2 variantes de post de alto impacto para la plataforma: ${pName}.
+Tono de voz solicitado: ${tone}.
+Formato de publicación solicitado: ${format.toUpperCase()} (Adapta el estilo de escritura y la estructura al formato).
+
+Tema principal: "${userPrompt}"`;
+
+  if (optObjective) promptText += `\nObjetivo del post: ${optObjective}`;
+  if (optAudience) promptText += `\nAudiencia objetivo: ${optAudience}`;
+  if (optBenefit) promptText += `\nBeneficio o gancho clave: ${optBenefit}`;
+  
+  promptText += `\n\nInstrucciones específicas por formato:
+- Si el formato es REEL o VIDEO: Estructura el post mostrando el [Gancho de 3s], el [Desarrollo del video (POV/Visuales y audio)], el [Llamado a la acción] y la descripción/caption final de manera clara.
+- Si el formato es STORY: Genera una secuencia de historias consecutivas (ej. Historia 1, Historia 2, Historia 3) con ideas de stickers de interacción (encuestas, preguntas) y el texto que debe ir en cada una.
+- Si el formato es CARRUSEL: Organiza el contenido diapositiva por diapositiva (Diapositiva 1: Gancho, Diapositiva 2: Valor, etc.) e incluye el caption final para el post.
+- Si el formato es HILO / THREAD: Genera una secuencia ordenada de posts enumerados (1/, 2/, 3/...) cortos que quepan en el límite.
+- Si el formato es POST Feed / estándar: Genera una redacción persuasiva con espacios limpios y emojis relevantes.
+
+Límite de caracteres del post/caption: ${limit} caracteres.`;
+
+  if (optEngagement) {
+    promptText += `\n\nCRÍTICO: Finaliza obligatoriamente cada variante de post (o el caption final) con 1 o 2 preguntas interactivas y potentes relacionadas al tema para fomentar comentarios de la audiencia (engagement).`;
+  }
+
+  promptText += `\n\nResponde únicamente con un objeto JSON válido con la clave "posts" conteniendo un array de strings con las 2 variantes generadas. No agregues explicaciones externas ni markdown de código. Formato: {"posts":["variante 1","variante 2"]}`;
+
+  let generatedPosts = null;
+
+  if (apiKey) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: promptText
+            }]
+          }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                posts: {
+                  type: "ARRAY",
+                  items: { type: "STRING" },
+                  description: "Exactly 2 post variations"
+                }
+              },
+              required: ["posts"]
+            }
+          }
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const textResponse = data.candidates[0].content.parts[0].text;
+        const parsed = JSON.parse(textResponse);
+        if (parsed && parsed.posts && parsed.posts.length >= 2) {
+          generatedPosts = parsed.posts;
+        }
+      } else {
+        console.error("Gemini API error status:", response.status);
+      }
+    } catch (e) {
+      console.error("Failed to generate with Gemini API:", e);
     }
+  }
 
-    container.innerHTML = clients.map(c => `
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:4px;">
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);font-weight:500;">
-          <div style="width:10px;height:10px;border-radius:50%;background:${c.color || 'var(--lime)'}"></div>
-          <span>${c.name}</span>
-        </div>
-        <button class="btn btn-icon btn-ghost" onclick="deleteClient('${c.id}')" title="Eliminar cliente" style="color:var(--danger);padding:4px;display:flex;align-items:center;justify-content:center;">
-          <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-        </button>
+  const posts = generatedPosts || generateFallbackPosts(userPrompt, platform, format, tone, optObjective, optAudience, optBenefit, optEngagement);
+
+  renderResults(posts);
+  generating = false;
+  btn.disabled = false;
+  document.getElementById('btnIcon').textContent = '✨';
+  document.getElementById('btnText').textContent = 'Generar con IA';
+  document.getElementById('btnRegen').style.display = 'block';
+  hasResults = true;
+}
+
+function generateFallbackPosts(prompt, platform, format, tone, objective, audience, benefit, engagement) {
+  const pName = NAMES[platform];
+  const objText = objective ? `para ${objective.toLowerCase()}` : '';
+  const audText = audience ? `diseñado especialmente para ${audience.toLowerCase()}` : '';
+  const benText = benefit ? `Recuerda: ${benefit}.` : 'La clave está en empezar hoy mismo.';
+  
+  const questions = [
+    `¿Qué opinás vos sobre esto? ¡Te leo en comentarios! 👇`,
+    `¿Ya aplicaste esto en tu día a día? Contame abajo.`,
+    `¿Cuál de estos puntos te pareció más útil? Guardá este post para no perderlo.`,
+    `¿Qué otra recomendación sumarías a la lista? Comentá 👇`
+  ];
+  const selectedQuestion = engagement ? `\n\n💬 ${questions[Math.floor(Math.random() * questions.length)]}` : '';
+
+  let v1 = '', v2 = '';
+
+  if (format === 'reel' || format === 'video') {
+    v1 = `🎥 [GUION DE REEL]
+⏱️ Gancho (0-3s): "¿Te pasa que querés ${prompt}? Dejá de perder el tiempo y probá esto."
+🎬 Visual: Aparecés señalando a la pantalla con texto llamativo.
+🗣️ Voz en Off: "${benText} Con este método vas a lograrlo de forma fácil y rápida."
+📝 Caption: Si estás buscando ${prompt} ${objText}, este video es para vos. ${audText}. ${selectedQuestion}`;
+
+    v2 = `🎬 [GUION DE VIDEO / REEL]
+⏱️ Gancho (0-3s): "El secreto mejor guardado sobre: ${prompt} 🤫"
+🎬 Visual: Transición rápida mostrando el resultado final antes del proceso.
+🗣️ Voz en Off: "Nadie te dice esto, pero la clave real es enfocarse en el valor. ${benText}"
+📝 Caption: 💡 Guardá este video. ¿Sabías que podés mejorar en ${prompt}? Aquí tenés los pasos explicados en el video. ${audText}. ${selectedQuestion}`;
+  } 
+  
+  else if (format === 'carrusel') {
+    v1 = `📄 [ESTRUCTURA DE CARRUSEL]
+Slide 1 (Gancho): 3 Pasos clave para ${prompt} 🚀
+Slide 2: Paso 1 - Definir el problema central. Sin esto no hay avance.
+Slide 3: Paso 2 - Aplicar la solución directa. ${benText}
+Slide 4: Paso 3 - Medir y optimizar los resultados.
+Slide 5 (CTA): ¿Cuál aplicarías hoy? ¡Comentá abajo!
+
+📝 Caption: Te desgloso la guía definitiva de ${prompt} ${objText}. Hecho a medida ${audText}. ¡Desliza para ver el paso a paso! ${selectedQuestion}`;
+
+    v2 = `📄 [ESTRUCTURA DE CARRUSEL]
+Slide 1 (Gancho): El error N°1 que cometés al buscar ${prompt} ❌
+Slide 2: Pensar que se resuelve con más esfuerzo en vez de estrategia.
+Slide 3: El verdadero secreto está en la constancia.
+Slide 4: Aquí tenés el cambio de mentalidad que necesitás.
+Slide 5 (CTA): Guardá este post y compartí con tu equipo.
+
+📝 Caption: Deja de cometer este error común. Esto es lo que debés hacer si pertenecés a la audiencia de ${audience || 'creadores'}. ${selectedQuestion}`;
+  } 
+  
+  else if (format === 'story') {
+    v1 = `📱 [SECUENCIA DE STORIES]
+Historia 1: 🧐 ¿Alguna vez te frustró intentar ${prompt}? (Agregar sticker de encuesta: SÍ 🙋 / NO 🙅)
+Historia 2: La mayoría falla porque no aplica esto: "${benText}".
+Historia 3: ¡Buenas noticias! Hoy te muestro el camino simple. Deslizá hacia arriba o tocá el link en bio para ver todo. 🔗`;
+
+    v2 = `📱 [SECUENCIA DE STORIES]
+Historia 1: POV: Estás buscando ${prompt} ${objText} y por fin encontrás la solución exacta... 🎯
+Historia 2: 🤔 Pregunta rápida: ¿Cuál es tu mayor obstáculo con esto hoy? (Agregar caja de preguntas de IG)
+Historia 3: Mañana subo un post detallando las mejores respuestas. ¡Atentos! 🔔`;
+  } 
+  
+  else if (format === 'hilo') {
+    v1 = `1/ ¿Buscás cómo dominar ${prompt}? Hilo imperdible sobre cómo lograrlo con éxito. 👇
+
+2/ Lo primero es entender que no hay fórmulas mágicas, sino procesos sólidos. La clave es el enfoque.
+
+3/ Un factor vital: "${benText}". Si dominás esto, ya tenés el 80% del camino hecho.
+
+4/ Si te sirvió este hilo, dale RT al primer tweet para ayudar a más ${audience || 'personas'}. ${selectedQuestion}`;
+
+    v2 = `1/ El 90% de la gente falla en ${prompt} por no saber esto. Abrí hilo y tomá nota. 🧵👇
+
+2/ El primer paso es definir con claridad tu meta: ${objective || 'crecer'}. Sin un norte claro, todo esfuerzo se diluye.
+
+3/ Aquí tenés mi mejor consejo: centrate en el valor que entregás y sé constante.
+
+4/ ¿Te sirvió? Seguime para más contenido sobre este tema y dejame tu opinión. ${selectedQuestion}`;
+  } 
+  
+  else { // standard post / image
+    v1 = `✨ ¿Querés mejorar en ${prompt}?
+
+Mucha gente busca el camino rápido, pero la verdad es que el éxito radica en los detalles y la consistencia en tu estrategia.
+
+💡 Recordá esto:
+👉 ${benText}
+👉 Definí a tu público objetivo (${audience || 'general'}).
+👉 Mantené el enfoque en tu meta: ${objective || 'aportar valor'}.
+
+¿Te sirvió esta información?
+${selectedQuestion}`;
+
+    v2 = `🚀 Hablemos de ${prompt}.
+
+Si estás buscando ${objective || 'un cambio real'}, este mensaje es para vos. A veces nos abrumamos con tanta información, pero la solución suele ser simplificar.
+
+Aquí tenés 3 puntos clave:
+1️⃣ Enfocá tu mensaje en lo importante.
+2️⃣ Conocé a tu audiencia.
+3️⃣ Aportá valor real en cada interacción.
+
+Compartilo con alguien que lo necesite leer hoy.
+${selectedQuestion}`;
+  }
+
+  // Adjust for tone
+  if (tone === 'Casual') {
+    v1 = v1.replace(/usted/gi, 'vos').replace(/busque/gi, 'buscá').replace(/recuerde/gi, 'recordá');
+    v2 = v2.replace(/usted/gi, 'vos').replace(/busque/gi, 'buscá').replace(/recuerde/gi, 'recordá');
+  } else if (tone === 'Profesional') {
+    v1 = v1.replace(/vos/gi, 'usted').replace(/querés/gi, 'quiere').replace(/probá/gi, 'pruebe').replace(/guardá/gi, 'guarde').replace(/contame/gi, 'cuénteme').replace(/opinás/gi, 'opina').replace(/te leo/gi, 'le leo');
+    v2 = v2.replace(/vos/gi, 'usted').replace(/querés/gi, 'quiere').replace(/probá/gi, 'pruebe').replace(/guardá/gi, 'guarde').replace(/contame/gi, 'cuénteme').replace(/opinás/gi, 'opina').replace(/te leo/gi, 'le leo');
+  } else if (tone === 'Divertido') {
+    v1 = `🎉 ¡Alerta de post copado! 🎉\n\n` + v1 + `\n\n¡No te duermas! 😜`;
+    v2 = `🔥 ¡Se picó! 🔥\n\n` + v2 + `\n\nCompartilo antes de que pase de moda 😂`;
+  }
+
+  return [v1, v2];
+}
+
+function renderResults(posts) {
+  const col = COLORS[platform];
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  posts.forEach((text, i) => {
+    const card = document.createElement('div');
+    card.className = 'post-card';
+    card.style.animationDelay = (i * 0.15) + 's';
+    card.innerHTML = `
+      <div class="bar" style="background:${col}"></div>
+      <div class="post-content">
+        <div class="post-label" style="color:${col}">${NAMES[platform]} · Variante ${i + 1}</div>
+        <pre class="post-text">${escHtml(text)}</pre>
+        <button class="btn-copy" onclick="copyPost(this,'${escHtml(text).replace(/'/g, "\\'")}')">Copiar</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function copyPost(btn, text) {
+  navigator.clipboard.writeText(text.replace(/\\n/g, '\n'));
+  btn.textContent = '✓ Copiado';
+  btn.className = 'btn-copy copied';
+  setTimeout(() => { btn.textContent = 'Copiar'; btn.className = 'btn-copy'; }, 2000);
+}
+
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// CALENDAR
+function renderCalendar() {
+  const title = MONTHS_ES[calMonth] + ' ' + calYear;
+  document.getElementById('calTitle').textContent = title;
+
+  const daysEl = document.getElementById('calDays');
+  daysEl.innerHTML = DAYS_ES.map(d => `<div class="day-name">${d}</div>`).join('');
+
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const total = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < first; i++) {
+    const e = document.createElement('button');
+    e.className = 'day-btn empty';
+    grid.appendChild(e);
+  }
+
+  const monthPosts = getMonthPosts();
+
+  for (let d = 1; d <= total; d++) {
+    const btn = document.createElement('button');
+    const isToday = isCurrentMonth && today.getDate() === d;
+    const isSel = selectedDay === d;
+    btn.className = 'day-btn' + (isToday ? ' today' : '') + (isSel && !isToday ? ' selected' : '');
+    const posts = monthPosts[d] || [];
+    const dots = posts.slice(0, 4).map(p => `<div class="day-dot" style="background:${COLORS[p.platform]}"></div>`).join('');
+    btn.innerHTML = `<span class="day-num">${d}</span><div class="day-dots">${dots}</div>`;
+    btn.onclick = () => selectDay(d);
+    grid.appendChild(btn);
+  }
+
+  // stats
+  const allPostDays = Object.keys(monthPosts).filter(k => monthPosts[k].length > 0);
+  const totalPosts = Object.values(monthPosts).reduce((a, v) => a + v.length, 0);
+  document.getElementById('calStats').innerHTML = `
+    <div class="mini-stat"><div class="mini-stat-val">${totalPosts}</div><div class="mini-stat-label">Posts programados</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${allPostDays.length}</div><div class="mini-stat-label">Días con posts</div></div>`;
+
+  if (selectedDay) renderDayDetail(selectedDay);
+  else document.getElementById('dayDetail').innerHTML = '';
+}
+
+function getMonthPosts() {
+  const today = new Date();
+  if (calYear === today.getFullYear() && calMonth === today.getMonth()) return mockPosts;
+  return {};
+}
+
+function selectDay(d) {
+  selectedDay = selectedDay === d ? null : d;
+  renderCalendar();
+}
+
+function renderDayDetail(d) {
+  const posts = (getMonthPosts()[d] || []);
+  const dateStr = `${d} de ${MONTHS_ES[calMonth]}`;
+  const det = document.getElementById('dayDetail');
+  if (posts.length === 0) {
+    det.innerHTML = `<div class="day-detail"><div class="detail-header">${dateStr}</div><div class="empty-state"><div class="empty-icon">📭</div><p>No hay posts programados</p><button class="btn-add">+ Agregar post</button></div></div>`;
+    return;
+  }
+  const items = posts.map(p => `
+    <div class="detail-post">
+      <div class="detail-icon" style="background:${COLORS[p.platform]}22">${ICONS[p.platform]}</div>
+      <div class="detail-body">
+        <div class="detail-plat" style="color:${COLORS[p.platform]}">${NAMES[p.platform]}</div>
+        <div class="detail-text">${p.text.split('\n')[0]}</div>
+        <div class="detail-time">🕐 ${p.time}</div>
       </div>
-    `).join('');
+    </div>`).join('');
+  det.innerHTML = `<div class="day-detail"><div class="detail-header">${dateStr} · ${posts.length} post${posts.length > 1 ? 's' : ''}</div>${items}</div>`;
 }
 
-function deleteClient(clientId) {
-    showConfirm('¿Eliminás este cliente?', 'Los posts asociados se moverán a "Mi cuenta".', () => {
-        clients = clients.filter(c => c.id !== clientId);
-        posts = posts.map(p => p.client_id === clientId ? { ...p, client_id: null } : p);
-        save('ctos_clients', clients);
-        save('ctos_posts', posts);
-        if (activeClient === clientId) activeClient = null;
-        renderClients();
-        render();
-        renderSettingsClients();
-    });
+function prevMonth() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedDay = null;
+  renderCalendar();
+}
+function nextMonth() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedDay = null;
+  renderCalendar();
 }
 
-document.body.classList.toggle('dark-theme', currentTheme === 'dark');
-renderClients();
-render();
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('panelGen').classList.toggle('tab-active', tab === 'gen');
+  document.getElementById('panelCal').classList.toggle('tab-active', tab === 'cal');
+}
+
+// init
+renderCalendar();
+renderFormats();
+updateApiStatusUI();
+updateCount();
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('Service Worker registrado con éxito. Scope:', reg.scope);
+      })
+      .catch((err) => {
+        console.error('Error al registrar el Service Worker:', err);
+      });
+  });
+}
